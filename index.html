@@ -406,16 +406,16 @@
                     <label class="form-label">Amount Invest</label>
                     <div class="input-group">
                         <span class="input-group-text"><i class="fas fa-money-bill-wave"></i></span>
-                        <input type="number" class="form-control amount-invested" placeholder="Enter amount size" min="0"
-                            step="0.01" inputmode="decimal">
+                        <input type="number" class="form-control amount-invested" placeholder="Enter amount size"
+                            min="0" step="0.01" inputmode="decimal">
                     </div>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">Price Per Coin</label>
                     <div class="input-group">
                         <span class="input-group-text"><i class="fas fa-dollar-sign"></i></span>
-                        <input type="number" class="form-control price" placeholder="Enter price in per coin" min="0" step="0.01"
-                            inputmode="decimal">
+                        <input type="number" class="form-control price" placeholder="Enter price in per coin" min="0"
+                            step="0.01" inputmode="decimal">
                     </div>
                 </div>
                 <div class="col-12">
@@ -477,49 +477,30 @@
                 }
             });
 
-            // New function to format coin numbers based on their value
-            function formatCoinNumber(num) {
-                if (typeof num !== 'number') return '0';
-
-                // For values >= 1, show only 2 decimal places or none if it's a whole number
-                if (num >= 1) {
-                    // Check if it's a whole number (integer)
-                    if (Number.isInteger(num)) {
-                        return num.toString();
-                    } else {
-                        // Format with exactly 2 decimal places
-                        return num.toFixed(2);
-                    }
-                } else {
-                    // For values < 1, use the original formatting logic with up to 8 decimal places
-                    // Check if the number would require more than 8 decimal places to represent accurately
-                    const numStr = num.toString();
-                    if (numStr.includes('e-') && parseInt(numStr.split('e-')[1]) > 8) {
-                        // This is a very small number that would need more than 8 decimal places
-                        return null; // Return null to indicate it's too small
-                    }
-
-                    // Convert to string with up to 8 decimal places
-                    let formatted = num.toFixed(8);
-
-                    // Remove trailing zeros
-                    formatted = formatted.replace(/\.?0+$/, '');
-
-                    // If it ends with a decimal point, remove it
-                    if (formatted.endsWith('.')) {
-                        formatted = formatted.slice(0, -1);
-                    }
-
-                    return formatted;
-                }
-            }
-
-            // Format number function for unit display (with 8 decimal places max)
+            // Format coin number with up to 8 decimal places, removing trailing zeros
             function formatCryptoNumber(num) {
-                return formatCoinNumber(num);
+                if (typeof num !== 'number' || isNaN(num)) return '0';
+
+                // For very small numbers, handle scientific notation
+                if (num < 0.00000001) {
+                    return num.toExponential(8);
+                }
+
+                // Convert with 8 decimal places initially
+                let formatted = num.toFixed(8);
+
+                // Remove trailing zeros
+                formatted = formatted.replace(/\.?0+$/, '');
+
+                // If it ends with a decimal point, remove it
+                if (formatted.endsWith('.')) {
+                    formatted = formatted.slice(0, -1);
+                }
+
+                return formatted;
             }
 
-            // New function to format average price with up to 8 decimal places and commas
+            // Format price with appropriate decimal places and commas
             function formatAveragePrice(price) {
                 if (typeof price !== 'number' || isNaN(price)) return '$0.00';
 
@@ -531,33 +512,28 @@
                     return '$' + price.toExponential(8);
                 }
 
-                // Format with appropriate decimal places based on price value
-                let decimals = 2; // Default to 2 decimal places
-
-                if (price < 0.0001) {
-                    decimals = 8; // Show up to 8 decimal places for very small prices
-                } else if (price < 0.01) {
-                    decimals = 6; // Show up to 6 decimal places
-                } else if (price < 1) {
-                    decimals = 4; // Show up to 4 decimal places
-                }
-
-                // Get the appropriate number of decimal places
-                let formatted = price.toFixed(decimals);
+                // Format with 8 decimal places initially
+                let formatted = price.toFixed(8);
 
                 // Remove trailing zeros but keep at least 2 decimal places
                 let parts = formatted.split('.');
                 if (parts.length > 1) {
                     let decimalsStr = parts[1];
 
-                    // If decimals have more than 2 digits
-                    if (decimalsStr.length > 2) {
-                        // Remove trailing zeros
-                        while (decimalsStr.length > 2 && decimalsStr.endsWith('0')) {
-                            decimalsStr = decimalsStr.slice(0, -1);
-                        }
-                        formatted = parts[0] + '.' + decimalsStr;
+                    // If it has more than 2 decimal places and ends with zeros
+                    while (decimalsStr.length > 2 && decimalsStr.endsWith('0')) {
+                        decimalsStr = decimalsStr.slice(0, -1);
                     }
+
+                    // Ensure at least 2 decimal places
+                    if (decimalsStr.length < 2) {
+                        decimalsStr = decimalsStr.padEnd(2, '0');
+                    }
+
+                    formatted = parts[0] + '.' + decimalsStr;
+                } else {
+                    // If no decimal part, add .00
+                    formatted = formatted + '.00';
                 }
 
                 // Add commas for thousands separator (only for the whole number part)
@@ -608,8 +584,6 @@
 
                 // Append the new purchase section
                 purchasesContainer.appendChild(purchaseClone);
-
-                // Removed auto-focus feature completely as requested
             }
 
             // Block non-numeric input in number fields
@@ -640,10 +614,10 @@
                 if (price > 0) {
                     const units = amountInvested / price;
 
-                    // Use the new formatting function
-                    const formattedUnits = formatCoinNumber(units);
+                    // Use the formatting function that handles up to 8 decimal places
+                    const formattedUnits = formatCryptoNumber(units);
 
-                    if (formattedUnits === null) {
+                    if (units < 0.00000001) {
                         // The investment is too small for this price
                         unitsInput.value = `Your investment amount of $${amountInvested} is too small for this price and cannot be invested.`;
                         unitsInput.classList.add('too-small-investment');
@@ -743,14 +717,14 @@
                 const averagePrice = totalUnits > 0 ? totalInvested / totalUnits : 0;
 
                 // Display results
-                // Format total units with colorful text using the new formatting function
-                const formattedUnits = formatCoinNumber(totalUnits);
+                // Format total units with colorful text using the updated formatting function
+                const formattedUnits = formatCryptoNumber(totalUnits);
                 totalUnitsElement.innerHTML = `<span class="amount">${formattedUnits}</span> <span class="coin-text">Coins</span>`;
 
                 // Format total invested with comma separator
                 totalInvestedElement.textContent = '$' + totalInvested.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 
-                // Format average price with up to 8 decimal places and proper handling of small numbers
+                // Format average price with appropriate decimal places
                 const avgPriceFormatted = formatAveragePrice(averagePrice);
                 averagePriceElement.textContent = avgPriceFormatted;
 
