@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cryptocurrency Average Calculator</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-size: 16px;
+        }
+
+        .calculator-container {
+            max-width: 800px;
+            margin: 20px auto;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            background-color: #fff;
+            overflow: hidden;
+        }
+
+        .calculator-header {
+            background: linear-gradient(135deg, #4CAF50, #2E7D32);
+            color: white;
+            padding: 15px;
+            border-radius: 10px 10px 0 0;
+            text-align: center;
+        }
+
+        .calculator-header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+
+        @media (max-width: 576px) {
+            .calculator-header h1 {
+                font-size: 1.5rem;
+            }
+
+            .calculator-header p {
+                font-size: 0.9rem;
+            }
+        }
+
+        .purchase-section {
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid #4CAF50;
+            padding: 12px;
+        }
+
+        .result-box {
+            background-color: #e9f7ef;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            border-left: 4px solid #2E7D32;
+        }
+
+        .btn-add-purchase {
+            background-color: #4CAF50;
+            border-color: #4CAF50;
+        }
+
+        .btn-add-purchase:hover {
+            background-color: #3d8b40;
+            border-color: #3d8b40;
+        }
+
+        .btn-remove {
+            color: #dc3545;
+            cursor: pointer;
+        }
+
+        .btn-calculate {
+            background-color: #4CAF50;
+            border-color: #4CAF50;
+        }
+
+        .btn-calculate:hover {
+            background-color: #3d8b40;
+            border-color: #3d8b40;
+        }
+
+        .btn-clear {
+            color: #212529;
+            background-color: #ffc107;
+            transition: all 0.3s ease;
+        }
+
+        .btn-clear:hover {
+            background-color: transparent !important;
+            color: #ffda74;
+            background-color: #3d8b40 !important;
+        }
+
+        .purchase-number {
+            font-weight: bold;
+            color: #4CAF50;
+            font-size: 1.1rem;
+            margin-bottom: 0;
+        }
+
+        /* Mobile-friendly button adjustments - Fixed spacing issues */
+        @media (max-width: 767px) {
+            .action-buttons {
+                display: flex;
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .action-buttons .btn {
+                width: 100%;
+                margin: 0;
+                padding: 10px;
+                font-size: 1rem;
+                height: 45px;
+            }
+
+            .purchase-section .row {
+                margin: 0;
+            }
+
+            .form-label {
+                margin-bottom: 3px;
+                font-size: 0.9rem;
+            }
+
+            .purchase-number {
+                font-size: 1rem;
+            }
+
+            .result-box h5 {
+                font-size: 0.9rem;
+            }
+
+            .result-box h2 {
+                font-size: 1.5rem;
+            }
+        }
+
+        /* Custom modal styling */
+        .custom-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 25px 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            max-width: 90%;
+            width: 350px;
+            position: relative;
+            animation: modalFadeIn 0.3s ease;
+            margin: 0 15px;
+        }
+
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-icon {
+            font-size: 2.5rem;
+            color: #ffc107;
+            margin-bottom: 15px;
+        }
+
+        .modal-title {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .modal-btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: background-color 0.3s;
+        }
+
+        .modal-btn:hover {
+            background-color: #3d8b40;
+        }
+
+        /* Touch-friendly inputs */
+        input[type="number"] {
+            padding: 10px;
+            font-size: 16px;
+        }
+
+        /* Field spacing improvements */
+        .col-md-6,
+        .col-12 {
+            margin-bottom: 10px;
+        }
+
+        /* Prevent overflow issues */
+        .container {
+            padding: 0 12px;
+        }
+
+        .input-group-text {
+            padding: 0.5rem 0.75rem;
+        }
+
+        /* Improved results section - single column layout */
+        .result-item {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 10px;
+            border-radius: 8px;
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .result-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        /* Responsive font size for large numbers */
+        .responsive-text {
+            transition: font-size 0.3s ease;
+        }
+
+        /* Colorful unit display */
+        .unit-display {
+            font-weight: bold;
+        }
+
+        .unit-display .coin-text {
+            color: #4CAF50;
+        }
+
+        .unit-display .amount {
+            color: #2E7D32;
+        }
+
+        /* Style for the units input to make the number bold */
+        .units-number {
+            font-weight: bold;
+        }
+
+        /* Consistent button styling */
+        .btn {
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Style for too small investment message */
+        .too-small-investment {
+            color: #dc3545;
+            font-style: italic;
+            font-size: 0.9rem;
+        }
+
+        /* Footer styling */
+        .footer {
+            text-align: center;
+            padding: 15px 0;
+            background: linear-gradient(135deg, #2E7D32, #4CAF50);
+            color: #212529;
+            border-radius: 0 0 10px 10px;
+            margin-top: 20px;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .footer span {
+            position: relative;
+            z-index: 1;
+            letter-spacing: 1px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        .footer i {
+            margin: 0 5px;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.2);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="calculator-container">
+            <div class="calculator-header">
+                <h1><i class="fas fa-chart-line me-2"></i>Cryptocurrency Average Calculator</h1>
+                <p class="mb-0">Calculate your average purchase price across multiple transactions</p>
+            </div>
+
+            <div class="p-3 p-sm-4">
+                <div id="purchases-container">
+                    <!-- Purchase sections will be added here by JavaScript -->
+                </div>
+
+                <div class="d-grid gap-2 mt-3">
+                    <button id="calculate" class="btn btn-calculate btn-lg py-2">
+                        <i class="fas fa-calculator me-2"></i>Calculate Average
+                    </button>
+                </div>
+
+                <div id="results" class="result-box d-none">
+                    <h3 class="text-center mb-4">Results</h3>
+                    <!-- Single column results layout -->
+                    <div class="result-item">
+                        <h5>Total Coins</h5>
+                        <div id="total-units" class="result-value unit-display">0 <span class="coin-text">Coins</span>
+                        </div>
+                    </div>
+                    <div class="result-item">
+                        <h5>Total Invested</h5>
+                        <div id="total-invested" class="result-value">$0.00</div>
+                    </div>
+                    <div class="result-item">
+                        <h5>Average Price</h5>
+                        <div id="average-price" class="result-value responsive-text">$0.00</div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between mt-3 action-buttons">
+                    <button id="add-purchase" class="btn btn-add-purchase py-2">
+                        <i class="fas fa-plus-circle me-2"></i>Add Entry Price
+                    </button>
+                    <button id="clear-fields" class="btn btn-clear py-2">
+                        <i class="fas fa-eraser me-2"></i>Clear Input
+                    </button>
+                </div>
+            </div>
+
+            <!-- Added footer -->
+            <div class="footer">
+                <span><i class="fas fa-code"></i> © 2025 by Pech Boris <i class="fas fa-code"></i></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Alert Modal -->
+    <div id="custom-modal" class="custom-modal">
+        <div class="modal-content">
+            <div class="modal-icon">
+                <i class="fas fa-exclamation-circle"></i>
+            </div>
+            <h4 class="modal-title">Incomplete Information</h4>
+            <p id="modal-message">Please fill in all required fields.</p>
+            <button id="modal-close-btn" class="modal-btn">Got it</button>
+        </div>
+    </div>
+
+    <!-- Template for purchase section -->
+    <template id="purchase-template">
+        <div class="purchase-section mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h4 class="purchase-number">Entry Price #<span class="number"></span></h4>
+                <button class="btn-remove btn p-0 m-0 border-0 bg-transparent text-danger" title="Remove this purchase">
+                    <i class="fas fa-times-circle fa-lg"></i>
+                </button>
+            </div>
+            <div class="row g-2">
+                <div class="col-md-6">
+                    <label class="form-label">Amount Invest</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-money-bill-wave"></i></span>
+                        <input type="number" class="form-control amount-invested" placeholder="Enter amount" min="0"
+                            step="0.01" inputmode="decimal">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Price Per Coin</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-dollar-sign"></i></span>
+                        <input type="number" class="form-control price" placeholder="Enter price" min="0" step="0.01"
+                            inputmode="decimal">
+                    </div>
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Coins You Received</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-hashtag"></i></span>
+                        <input type="text" class="form-control units bg-white" placeholder="Calculated automatically"
+                            disabled>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Bootstrap JS and Popper.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Get elements
+            const purchasesContainer = document.getElementById('purchases-container');
+            const addPurchaseBtn = document.getElementById('add-purchase');
+            const calculateBtn = document.getElementById('calculate');
+            const clearBtn = document.getElementById('clear-fields');
+            const resultsDiv = document.getElementById('results');
+            const totalUnitsElement = document.getElementById('total-units');
+            const totalInvestedElement = document.getElementById('total-invested');
+            const averagePriceElement = document.getElementById('average-price');
+            const purchaseTemplate = document.getElementById('purchase-template').content;
+
+            // Custom modal elements
+            const customModal = document.getElementById('custom-modal');
+            const modalMessage = document.getElementById('modal-message');
+            const modalCloseBtn = document.getElementById('modal-close-btn');
+
+            let purchaseCount = 0;
+
+            // Add initial purchases
+            addPurchase();
+            addPurchase();
+
+            // Add purchase event listener
+            addPurchaseBtn.addEventListener('click', addPurchase);
+
+            // Calculate button event listener
+            calculateBtn.addEventListener('click', calculateAverage);
+
+            // Clear button event listener
+            clearBtn.addEventListener('click', clearAllFields);
+
+            // Modal close button event listener
+            modalCloseBtn.addEventListener('click', function () {
+                customModal.style.display = 'none';
+            });
+
+            // Close modal when clicking outside
+            customModal.addEventListener('click', function (event) {
+                if (event.target === customModal) {
+                    customModal.style.display = 'none';
+                }
+            });
+
+            // New function to format coin numbers based on their value
+            function formatCoinNumber(num) {
+                if (typeof num !== 'number') return '0';
+
+                // For values >= 1, show only 2 decimal places or none if it's a whole number
+                if (num >= 1) {
+                    // Check if it's a whole number (integer)
+                    if (Number.isInteger(num)) {
+                        return num.toString();
+                    } else {
+                        // Format with exactly 2 decimal places
+                        return num.toFixed(2);
+                    }
+                } else {
+                    // For values < 1, use the original formatting logic with up to 8 decimal places
+                    // Check if the number would require more than 8 decimal places to represent accurately
+                    const numStr = num.toString();
+                    if (numStr.includes('e-') && parseInt(numStr.split('e-')[1]) > 8) {
+                        // This is a very small number that would need more than 8 decimal places
+                        return null; // Return null to indicate it's too small
+                    }
+
+                    // Convert to string with up to 8 decimal places
+                    let formatted = num.toFixed(8);
+
+                    // Remove trailing zeros
+                    formatted = formatted.replace(/\.?0+$/, '');
+
+                    // If it ends with a decimal point, remove it
+                    if (formatted.endsWith('.')) {
+                        formatted = formatted.slice(0, -1);
+                    }
+
+                    return formatted;
+                }
+            }
+
+            // Format number function for unit display (with 8 decimal places max)
+            function formatCryptoNumber(num) {
+                return formatCoinNumber(num);
+            }
+
+            // New function to format average price with up to 8 decimal places and commas
+            function formatAveragePrice(price) {
+                if (typeof price !== 'number' || isNaN(price)) return '$0.00';
+
+                // Handle different price ranges appropriately
+                if (price === 0) return '$0.00';
+
+                // For very small numbers (less than 0.00000001), show scientific notation
+                if (price < 0.00000001) {
+                    return '$' + price.toExponential(8);
+                }
+
+                // Format with appropriate decimal places based on price value
+                let decimals = 2; // Default to 2 decimal places
+
+                if (price < 0.0001) {
+                    decimals = 8; // Show up to 8 decimal places for very small prices
+                } else if (price < 0.01) {
+                    decimals = 6; // Show up to 6 decimal places
+                } else if (price < 1) {
+                    decimals = 4; // Show up to 4 decimal places
+                }
+
+                // Get the appropriate number of decimal places
+                let formatted = price.toFixed(decimals);
+
+                // Remove trailing zeros but keep at least 2 decimal places
+                let parts = formatted.split('.');
+                if (parts.length > 1) {
+                    let decimalsStr = parts[1];
+
+                    // If decimals have more than 2 digits
+                    if (decimalsStr.length > 2) {
+                        // Remove trailing zeros
+                        while (decimalsStr.length > 2 && decimalsStr.endsWith('0')) {
+                            decimalsStr = decimalsStr.slice(0, -1);
+                        }
+                        formatted = parts[0] + '.' + decimalsStr;
+                    }
+                }
+
+                // Add commas for thousands separator (only for the whole number part)
+                parts = formatted.split('.');
+                parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                formatted = parts.join('.');
+
+                return '$' + formatted;
+            }
+
+            function addPurchase() {
+                purchaseCount++;
+
+                // Clone the template
+                const purchaseClone = document.importNode(purchaseTemplate, true);
+
+                // Update purchase number
+                purchaseClone.querySelector('.number').textContent = purchaseCount;
+
+                // Add event listeners for inputs
+                const priceInput = purchaseClone.querySelector('.price');
+                const amountInvestedInput = purchaseClone.querySelector('.amount-invested');
+                const unitsInput = purchaseClone.querySelector('.units');
+
+                // Block non-numeric input in number fields
+                priceInput.addEventListener('keydown', blockNonNumericInput);
+                amountInvestedInput.addEventListener('keydown', blockNonNumericInput);
+
+                // Calculate units when price or amount invested changes
+                priceInput.addEventListener('input', function () {
+                    calculateUnits(priceInput, amountInvestedInput, unitsInput);
+                });
+
+                amountInvestedInput.addEventListener('input', function () {
+                    calculateUnits(priceInput, amountInvestedInput, unitsInput);
+                });
+
+                // Add remove button event listener
+                const removeBtn = purchaseClone.querySelector('.btn-remove');
+                removeBtn.addEventListener('click', function () {
+                    if (purchasesContainer.children.length > 2) {
+                        this.closest('.purchase-section').remove();
+                        updatePurchaseNumbers();
+                    } else {
+                        showCustomModal("You need at least two Entry Price!");
+                    }
+                });
+
+                // Append the new purchase section
+                purchasesContainer.appendChild(purchaseClone);
+
+                // Removed auto-focus feature completely as requested
+            }
+
+            // Block non-numeric input in number fields
+            function blockNonNumericInput(e) {
+                // Allow: backspace, delete, tab, escape, enter, decimal point, and arrow keys
+                if ([46, 8, 9, 27, 13, 110, 190, 37, 38, 39, 40].indexOf(e.keyCode) !== -1 ||
+                    // Allow: Ctrl/cmd+A, Ctrl/cmd+C, Ctrl/cmd+X, Ctrl/cmd+V
+                    (e.keyCode === 65 && (e.ctrlKey === true || e.metaKey === true)) ||
+                    (e.keyCode === 67 && (e.ctrlKey === true || e.metaKey === true)) ||
+                    (e.keyCode === 88 && (e.ctrlKey === true || e.metaKey === true)) ||
+                    (e.keyCode === 86 && (e.ctrlKey === true || e.metaKey === true)) ||
+                    // Allow: home, end
+                    (e.keyCode >= 35 && e.keyCode <= 39)) {
+                    // Let it happen
+                    return;
+                }
+                // Block if not a number
+                if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
+                    e.preventDefault();
+                }
+            }
+
+            function calculateUnits(priceInput, amountInvestedInput, unitsInput) {
+                const price = parseFloat(priceInput.value) || 0;
+                const amountInvested = parseFloat(amountInvestedInput.value) || 0;
+
+                // Avoid division by zero
+                if (price > 0) {
+                    const units = amountInvested / price;
+
+                    // Use the new formatting function
+                    const formattedUnits = formatCoinNumber(units);
+
+                    if (formattedUnits === null) {
+                        // The investment is too small for this price
+                        unitsInput.value = `Your investment amount of $${amountInvested} is too small for this price and cannot be invested.`;
+                        unitsInput.classList.add('too-small-investment');
+                    } else {
+                        // Normal case - display the units
+                        unitsInput.value = formattedUnits + " Coins";
+                        unitsInput.classList.remove('too-small-investment');
+                    }
+                } else {
+                    unitsInput.value = '';
+                    unitsInput.classList.remove('too-small-investment');
+                }
+            }
+
+            function updatePurchaseNumbers() {
+                const purchaseSections = purchasesContainer.querySelectorAll('.purchase-section');
+                purchaseSections.forEach((section, index) => {
+                    section.querySelector('.number').textContent = index + 1;
+                });
+                purchaseCount = purchaseSections.length;
+            }
+
+            function showCustomModal(message) {
+                modalMessage.textContent = message;
+                customModal.style.display = 'flex';
+            }
+
+            // Adjust font size based on text length
+            function adjustFontSize(element, text) {
+                const length = text.length;
+
+                if (length > 20) {
+                    element.style.fontSize = '1rem';
+                } else if (length > 15) {
+                    element.style.fontSize = '1.2rem';
+                } else if (length > 10) {
+                    element.style.fontSize = '1.3rem';
+                } else {
+                    element.style.fontSize = '1.5rem'; // Default size
+                }
+            }
+
+            function calculateAverage() {
+                let totalUnits = 0;
+                let totalInvested = 0;
+                let isValid = true;
+                let errorSection = null;
+                let hasTooSmallInvestment = false;
+
+                // Get all purchase sections
+                const purchaseSections = purchasesContainer.querySelectorAll('.purchase-section');
+
+                // Validate and calculate totals
+                purchaseSections.forEach((section, index) => {
+                    const priceInput = section.querySelector('.price');
+                    const amountInvestedInput = section.querySelector('.amount-invested');
+                    const unitsInput = section.querySelector('.units');
+
+                    const price = parseFloat(priceInput.value);
+                    const amountInvested = parseFloat(amountInvestedInput.value);
+
+                    if (isNaN(price) || isNaN(amountInvested)) {
+                        if (!errorSection) {
+                            errorSection = index + 1;
+                        }
+                        isValid = false;
+                        return;
+                    }
+
+                    // Check if this is a "too small investment" message
+                    if (unitsInput.classList.contains('too-small-investment')) {
+                        hasTooSmallInvestment = true;
+                        if (!errorSection) {
+                            errorSection = index + 1;
+                        }
+                        isValid = false;
+                        return;
+                    }
+
+                    // Calculate units for this purchase
+                    const units = price > 0 ? amountInvested / price : 0;
+
+                    totalUnits += units;
+                    totalInvested += amountInvested;
+                });
+
+                if (!isValid) {
+                    if (hasTooSmallInvestment) {
+                        showCustomModal(`Investment amount in Purchase #${errorSection} is too small for the given price.`);
+                    } else {
+                        showCustomModal(`Please complete all Input in Entry Price #${errorSection}`);
+                    }
+                    return;
+                }
+
+                // Calculate average price
+                const averagePrice = totalUnits > 0 ? totalInvested / totalUnits : 0;
+
+                // Display results
+                // Format total units with colorful text using the new formatting function
+                const formattedUnits = formatCoinNumber(totalUnits);
+                totalUnitsElement.innerHTML = `<span class="amount">${formattedUnits}</span> <span class="coin-text">Coins</span>`;
+
+                // Format total invested with comma separator
+                totalInvestedElement.textContent = '$' + totalInvested.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
+                // Format average price with up to 8 decimal places and proper handling of small numbers
+                const avgPriceFormatted = formatAveragePrice(averagePrice);
+                averagePriceElement.textContent = avgPriceFormatted;
+
+                // Adjust font size for average price if needed
+                adjustFontSize(averagePriceElement, avgPriceFormatted);
+
+                // Show results
+                resultsDiv.classList.remove('d-none');
+
+                // Scroll to results with a small delay to ensure DOM updates
+                setTimeout(() => {
+                    resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 100);
+            }
+
+            function clearAllFields() {
+                // Clear all purchase sections except two
+                while (purchasesContainer.children.length > 0) {
+                    purchasesContainer.removeChild(purchasesContainer.lastChild);
+                }
+
+                // Reset purchase count
+                purchaseCount = 0;
+
+                // Add two fresh purchase sections
+                addPurchase(); // This will be purchase #1
+                addPurchase(); // This will be purchase #2
+
+                // Hide results
+                resultsDiv.classList.add('d-none');
+            }
+
+            // Fix for iOS input issues
+            document.body.addEventListener('focusin', (e) => {
+                if (e.target.tagName === 'INPUT') {
+                    setTimeout(() => {
+                        if (window.innerHeight < 600) {
+                            e.target.scrollIntoView({ block: 'center' });
+                        }
+                    }, 300);
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
